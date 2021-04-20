@@ -146,6 +146,7 @@ export default {
     },
 
     methods: {
+        /* Botono de exportar a excel */
         exportar() {
             import('@/vendor/Export2Excel').then(excel => {
                 const tHeader = ['Número', 'Número de control', 'Nombre', 'Apellido', 'Carrera'];
