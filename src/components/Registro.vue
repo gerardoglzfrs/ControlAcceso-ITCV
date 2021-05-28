@@ -45,7 +45,21 @@
         </v-row>
       </v-form>
     </v-container>
-    <v-container>
+    <div style="margin: auto">
+      <v-divider />
+        <v-row class="justify-center">
+          <v-col cols="12" sm="12" md="12" lg="12">
+            <span class="subtitle-2">Préstamos en sala:</span> <v-chip class="ma-2" color="blue-grey darken-1" text-color="white" >23</v-chip> |
+            <span class="subtitle-2">Préstamo a domicilio:</span><v-chip class="ma-2" color="primary">23</v-chip> |
+            <span class="subtitle-2">Actividades de fomento de lectura:</span> <v-chip class="ma-2" color="red" text-color="white">23</v-chip> |
+            <span class="subtitle-2">Busqueda automatizada de información:</span> <v-chip class="ma-2" color="lime darken-2" text-color="white">23</v-chip> |
+            <span class="subtitle-2">Cubículo de estudio:</span> <v-chip class="ma-2" color="orange darken-1" text-color="white">23</v-chip> |
+            <span class="subtitle-2">Formación de usuarios:</span> <v-chip class="ma-2" color="purple accent-1" text-color="white">23</v-chip> 
+          </v-col>
+        </v-row>
+      <v-divider />
+    </div>
+    <div style="margin: auto">
       <v-row class="justify-center">
         <v-card class="mt-5">
           <v-card-title
@@ -71,17 +85,24 @@
           </v-data-table>
         </v-card>
       </v-row>
-    </v-container>
+    </div>
+    <Servicios :openModal="openModalServ"/>
   </v-app>
 </template>
 
 <script>
+import axios from "axios";
 import gql from "graphql-tag";
+import moment from 'moment';
+import { EventBus } from './../../EventBus';
+import Servicios from '@/components/Modal/Servicios';
 
 export default {
   name: "Registro",
+  components: {Servicios},
 
   data: () => ({
+    openModalServ: false,
     isValid: false,
     msjSuccess: false,
     msjError: false,
@@ -118,6 +139,20 @@ export default {
         align: "center",
         filerable: false,
       },
+      {
+        text: "Fecha de acceso",
+        value: "fecha",
+        sortable: false,
+        align: "center",
+        filerable: false,
+      },
+      {
+        text: "Servicio",
+        value: "servicio",
+        sortable: false,
+        align: "center",
+        filerable: false,
+      },
     ],
     fecha: '',
     alumno: {
@@ -135,9 +170,18 @@ export default {
   mounted() {
     this.focusInput();
     this.obtenerRegistro();
+
+    EventBus.$on("closeModalServ", () => {
+      this.openModalServ = false;
+    });
   },
 
   methods: {
+    /* Open modal */
+    openModalServices() {
+      this.openModalServ = true;
+    },
+
     focusInput() {
       this.$refs.numCtrl.focus();
     },
@@ -156,11 +200,31 @@ export default {
     
     /* Obtener los datos de los alumno */
     obtenerDatos() {
+      //this.openModalServices();
       var num_control = this.form.numControl;
       const link = "http://localhost:8080/services/alumno.php?no_control=";
       const url = link + num_control;
 
-      fetch(url)
+      axios.get(url, { crossdomain: true }).then((result) => {
+          console.log(result.data);
+        }).catch((error)=>{
+          console.log("Error",error);
+      });
+
+
+/*       const myInit = {
+        method: 'GET',
+        mode: 'no-cors',
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          "Access-Control-Allow-Methods": "GET, POST, PATCH, PUT, DELETE, OPTIONS",
+          "Access-Control-Allow-Headers": "Origin, Content-Type, X-Auth-Token",
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        }
+      };
+
+      fetch(url, myInit)
         .then(function(response){
           return response.json();
         }) 
@@ -168,6 +232,7 @@ export default {
             if (data.length != null && data.length > 0) {
               for (let i = 0; i < data.length; i++) {
                 const datos = data[i];
+                console.log(datos);
                 this.alumno.nc = datos.no_de_control;
                 this.alumno.carrera = datos.nombre_carrera;
                 this.alumno.nombre = datos.nombre_alumno;
@@ -184,7 +249,7 @@ export default {
               this.msjError = false;
             }, 2000);
           } 
-        });
+        }); */
     },
 
     async guardarRegistro() {
@@ -249,9 +314,12 @@ export default {
         let hour = "";
         let minute = "";
         let second = "";
+        
         for (const val of data.getAllEntries) {
           i++;
           val["numero"]=i;
+
+          /* get hour */
           h = val["entryTime"];
           d = new Date(h*1);
           hour = this.addZero(d.getHours());
@@ -259,7 +327,11 @@ export default {
           second = this.addZero(d.getSeconds());
           hours = hour+":"+minute+":"+second;
           val["horas"] = hours;
-        }
+
+          var dt = new Date(+h);
+          var allDate = moment(dt).format('MMMM DD');
+          val["fecha"] = allDate;
+         }
         this.alumnos = data.getAllEntries;
         this.alumnos.reverse();
         this.loading = false;

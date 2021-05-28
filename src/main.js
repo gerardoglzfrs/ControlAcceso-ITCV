@@ -6,7 +6,9 @@ import { apolloClient } from './graphql/apollo'
 import VueApollo from 'vue-apollo'
 import vuetify from './plugins/vuetify';
 import router from './router'
+import moment from 'moment'
 
+Vue.prototype.moment = moment
 Vue.use(vueAxios,axios)
 Vue.use(VueApollo)
 
