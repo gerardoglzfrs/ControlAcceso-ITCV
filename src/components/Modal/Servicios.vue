@@ -28,7 +28,7 @@
 </template>
 
 <script>
-import gql from "graphql-tag";
+//import gql from "graphql-tag";
 import { EventBus } from '../../../EventBus';
 
 export default {
