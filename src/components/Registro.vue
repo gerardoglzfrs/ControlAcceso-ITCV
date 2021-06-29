@@ -37,7 +37,7 @@
               block
               color="success"
               rounded
-              @click="obtenerDatos"
+              @click="abrirModal()"
               >Registrar
               <v-icon right dark>mdi-check</v-icon>
             </v-btn>
@@ -49,12 +49,12 @@
       <v-divider />
         <v-row class="justify-center">
           <v-col cols="12" sm="12" md="12" lg="12">
-            <span class="subtitle-2">Préstamos en sala:</span> <v-chip class="ma-2" color="blue-grey darken-1" text-color="white" >23</v-chip> |
-            <span class="subtitle-2">Préstamo a domicilio:</span><v-chip class="ma-2" color="primary">23</v-chip> |
-            <span class="subtitle-2">Actividades de fomento de lectura:</span> <v-chip class="ma-2" color="red" text-color="white">23</v-chip> |
-            <span class="subtitle-2">Busqueda automatizada de información:</span> <v-chip class="ma-2" color="lime darken-2" text-color="white">23</v-chip> |
-            <span class="subtitle-2">Cubículo de estudio:</span> <v-chip class="ma-2" color="orange darken-1" text-color="white">23</v-chip> |
-            <span class="subtitle-2">Formación de usuarios:</span> <v-chip class="ma-2" color="purple accent-1" text-color="white">23</v-chip> 
+            <span class="subtitle-2">Préstamos en sala:</span> <v-chip class="ma-2" color="blue-grey darken-1" text-color="white" >{{ this.numRepetidos["3"] }}</v-chip> |
+            <span class="subtitle-2">Préstamo a domicilio:</span><v-chip class="ma-2" color="primary">{{ this.numRepetidos["4"] }}</v-chip> |
+            <span class="subtitle-2">Actividades de fomento de lectura:</span> <v-chip class="ma-2" color="red" text-color="white">{{ this.numRepetidos["5"] }}</v-chip> |
+            <span class="subtitle-2">Búsqueda automatizada de información:</span> <v-chip class="ma-2" color="lime darken-2" text-color="white">{{ this.numRepetidos["6"] }}</v-chip> |
+            <span class="subtitle-2">Cubículo de estudio:</span> <v-chip class="ma-2" color="orange darken-1" text-color="white">{{ this.numRepetidos["7"] }}</v-chip> |
+            <span class="subtitle-2">Formación de usuarios:</span> <v-chip class="ma-2" color="purple accent-1" text-color="white">{{ this.numRepetidos["8"] }}</v-chip> 
           </v-col>
         </v-row>
       <v-divider />
@@ -86,23 +86,46 @@
         </v-card>
       </v-row>
     </div>
-    <Servicios :openModal="openModalServ"/>
+
+    <!-- Modal -->
+    <v-row justify="center">
+      <v-dialog v-model="openModal" persistent max-width="420px" >
+        <v-card>
+          <v-card-title>Seleccione el servicio que realizará</v-card-title>
+          <v-divider></v-divider>
+          <v-card-text style="height: 250px;">
+            <v-radio-group v-model="servicio" column >
+              <v-radio label="Préstamos en sala" value="3" ></v-radio>
+              <v-radio label="Préstamo a domicilio" value="4" ></v-radio>
+              <v-radio label="Actividades de fomento de lectura" value="5" ></v-radio>
+              <v-radio label="Búsqueda automatizada de información" value="6" ></v-radio>
+              <v-radio label="Cubículo de estudio" value="7" ></v-radio>
+              <v-radio label="Formación de usuarios" value="8" ></v-radio>
+            </v-radio-group>
+          </v-card-text>
+          <v-divider></v-divider>
+          <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn type="submit" :disabled="servicio===''" color="blue darken-1" text @click="obtenerDatos()" >
+                  <v-icon right dark>mdi-check</v-icon> 
+                  Guardar
+              </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+    </v-row>
   </v-app>
 </template>
 
 <script>
-import axios from "axios";
 import gql from "graphql-tag";
 import moment from 'moment';
-import { EventBus } from './../../EventBus';
-import Servicios from '@/components/Modal/Servicios';
 
 export default {
   name: "Registro",
-  components: {Servicios},
 
   data: () => ({
-    openModalServ: false,
+    openModal: false,
     isValid: false,
     msjSuccess: false,
     msjError: false,
@@ -148,7 +171,7 @@ export default {
       },
       {
         text: "Servicio",
-        value: "servicio",
+        value: "serviceId",
         sortable: false,
         align: "center",
         filerable: false,
@@ -159,8 +182,14 @@ export default {
       nc: '',
       carrera: '',
       nombre: '',
-      apellidos: ''
+      apellidos: '',
+      servicio: ''
     },
+    servicio: '',
+    operador: false,
+    isValid2: false,
+    datosServ: [],
+    numRepetidos: {}
   }),
 
   directives: {
@@ -171,15 +200,16 @@ export default {
     this.focusInput();
     this.obtenerRegistro();
 
-    EventBus.$on("closeModalServ", () => {
-      this.openModalServ = false;
-    });
+    if (this.alumnos.servicio==="8") {
+      return "Formacion de user"
+    }
+
   },
 
   methods: {
-    /* Open modal */
-    openModalServices() {
-      this.openModalServ = true;
+    // Abrir modal
+    abrirModal() {
+      this.openModal = true;
     },
 
     focusInput() {
@@ -200,31 +230,11 @@ export default {
     
     /* Obtener los datos de los alumno */
     obtenerDatos() {
-      //this.openModalServices();
       var num_control = this.form.numControl;
       const link = "http://localhost:8080/services/alumno.php?no_control=";
       const url = link + num_control;
 
-      axios.get(url, { crossdomain: true }).then((result) => {
-          console.log(result.data);
-        }).catch((error)=>{
-          console.log("Error",error);
-      });
-
-
-/*       const myInit = {
-        method: 'GET',
-        mode: 'no-cors',
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          "Access-Control-Allow-Methods": "GET, POST, PATCH, PUT, DELETE, OPTIONS",
-          "Access-Control-Allow-Headers": "Origin, Content-Type, X-Auth-Token",
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        }
-      };
-
-      fetch(url, myInit)
+      fetch(url)
         .then(function(response){
           return response.json();
         }) 
@@ -232,12 +242,14 @@ export default {
             if (data.length != null && data.length > 0) {
               for (let i = 0; i < data.length; i++) {
                 const datos = data[i];
-                console.log(datos);
                 this.alumno.nc = datos.no_de_control;
                 this.alumno.carrera = datos.nombre_carrera;
                 this.alumno.nombre = datos.nombre_alumno;
                 this.alumno.apellidos = datos.apellido_paterno+" " +datos.apellido_materno;
+                this.alumno.servicio = this.servicio;
+                console.log(this.alumno);
                 this.guardarRegistro();
+                this.openModal = false;
               }
             }
           })
@@ -249,7 +261,7 @@ export default {
               this.msjError = false;
             }, 2000);
           } 
-        }); */
+        });
     },
 
     async guardarRegistro() {
@@ -257,16 +269,17 @@ export default {
       try {
         const { data } = await this.$apollo.mutate({
           mutation: gql`
-            mutation($controlNumber: Int!, $entryTime: String!, $career: String!, $name: String!, $lastName: String!)
+            mutation($controlNumber: Int!, $entryTime: String!, $career: String!, $name: String!, $lastName: String!, $serviceId: Int!)
             {
-                createEntryLog(controlNumber: $controlNumber, entryTime: $entryTime, career: $career, name: $name, lastName: $lastName)
+                createEntryLog(controlNumber: $controlNumber, entryTime: $entryTime, career: $career, name: $name, lastName: $lastName, serviceId: $serviceId)
                 {
                   id,
                   controlNumber,
                   entryTime,
                   career,
                   name,
-                  lastName
+                  lastName,
+                  serviceId
                 }
             }
         `,
@@ -275,7 +288,8 @@ export default {
             entryTime: this.fecha,
             career: this.alumno.carrera,
             name: this.alumno.nombre,
-            lastName: this.alumno.apellidos
+            lastName: this.alumno.apellidos,
+            serviceId: parseInt(this.alumno.servicio)
           },
         });
         this.obtenerRegistro();
@@ -302,7 +316,8 @@ export default {
                 career,
                 entryTime,
                 name,
-                lastName
+                lastName,
+                serviceId
               }
             }
         `
@@ -334,7 +349,20 @@ export default {
          }
         this.alumnos = data.getAllEntries;
         this.alumnos.reverse();
+
+        var repetidos = {};
+        for (let i = 0; i < this.alumnos.length; i++) {
+          const dts = this.alumnos[i];
+          this.datosServ.push(dts.serviceId);
+        }
+        this.datosServ.forEach(numero => {
+          repetidos[numero] = (repetidos[numero] || 0) + 1;
+          this.numRepetidos = repetidos
+        })
+
+        console.log(this.numRepetidos);
         this.loading = false;
+        
       } catch (error) {
         console.log(error);
       }
