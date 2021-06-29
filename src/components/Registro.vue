@@ -207,11 +207,6 @@ export default {
   mounted() {
     this.focusInput();
     this.obtenerRegistro();
-
-    if (this.alumnos.servicio==="8") {
-      return "Formacion de user"
-    }
-
   },
 
   methods: {
@@ -257,7 +252,19 @@ export default {
       const link = "http://localhost:8080/services/alumno.php?no_control=";
       const url = link + num_control;
 
-      fetch(url)
+      const myInit = {
+        method: 'GET',
+        mode: 'no-cors',
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          "Access-Control-Allow-Methods": "GET, POST, PATCH, PUT, DELETE, OPTIONS",
+          "Access-Control-Allow-Headers": "Origin, Content-Type, X-Auth-Token",
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        }
+      };
+
+      fetch(url, myInit)
         .then(function(response){
           return response.json();
         }) 
@@ -270,7 +277,6 @@ export default {
                 this.alumno.nombre = datos.nombre_alumno;
                 this.alumno.apellidos = datos.apellido_paterno+" " +datos.apellido_materno;
                 this.alumno.servicio = this.servicio;
-                console.log(this.alumno);
                 this.guardarRegistro();
                 this.openModal = false;
               }
