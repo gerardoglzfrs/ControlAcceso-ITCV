@@ -82,6 +82,14 @@
             :footer-props="{ itemsPerPageText: 'Paginación' }"
             :items="alumnos"
           >
+          <template v-slot:item.serviceId="{ item }">
+            <v-chip
+              :color="getColor(item.serviceId)"
+              dark
+              style="border-radius: 5px"
+            >
+            </v-chip>
+          </template>
           </v-data-table>
         </v-card>
       </v-row>
@@ -207,6 +215,21 @@ export default {
   },
 
   methods: {
+    getColor (serviceId) {
+      if (serviceId === 3) {
+        return 'blue-grey darken-1'
+      } else if (serviceId === 4) {
+        return 'primary'
+      } else if (serviceId === 5) {
+        return 'red'
+      } else if (serviceId === 6) {
+        return 'lime darken-2'
+      } else if (serviceId === 7) {
+        return 'orange darken-1'
+      } else if (serviceId === 8) {
+        return 'purple accent-1'
+      }
+    },
     // Abrir modal
     abrirModal() {
       this.openModal = true;
@@ -265,6 +288,7 @@ export default {
     },
 
     async guardarRegistro() {
+      this.numRepetidos={};
       this.horaFecha();
       try {
         const { data } = await this.$apollo.mutate({
@@ -346,21 +370,20 @@ export default {
           var dt = new Date(+h);
           var allDate = moment(dt).format('MMMM DD');
           val["fecha"] = allDate;
-         }
+        }
         this.alumnos = data.getAllEntries;
         this.alumnos.reverse();
-
+        this.datosServ=[];
         var repetidos = {};
         for (let i = 0; i < this.alumnos.length; i++) {
           const dts = this.alumnos[i];
           this.datosServ.push(dts.serviceId);
         }
+        
         this.datosServ.forEach(numero => {
           repetidos[numero] = (repetidos[numero] || 0) + 1;
-          this.numRepetidos = repetidos
         })
-
-        console.log(this.numRepetidos);
+        this.numRepetidos = repetidos
         this.loading = false;
         
       } catch (error) {
