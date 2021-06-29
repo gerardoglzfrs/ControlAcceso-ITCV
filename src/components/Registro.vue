@@ -287,6 +287,7 @@ export default {
           if (err) {
             this.msjError = true;
             this.$refs.formulario.reset();
+            this.openModal = false;
             setTimeout(() => {
               this.msjError = false;
             }, 2000);
