@@ -249,7 +249,8 @@ export default {
     /* Obtener los datos de los alumno */
     obtenerDatos() {
       var num_control = this.form.numControl;
-      const link = "http://localhost:8080/services/alumno.php?no_control=";
+      const location = window.location.href
+      const link = `${location}services/alumno.php?no_control=`;
       const url = link + num_control;
 
       const myInit = {
