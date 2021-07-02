@@ -45,7 +45,7 @@
                         </v-card-title>
                         <v-data-table
                             :headers="headers"
-                            no-data-text="No hay consultas"
+                            no-data-text="No existen entradas"
                             class="elevation-1"
                             :loading="loading"
                             loading-text="Cargando... Espere por favor"
@@ -110,6 +110,9 @@ export default {
             'INGENIERIA EN GESTION EMPRESARIAL',
             'INGENIERIA AMBIENTAL',
             'INGENIERIA INDUSTRIAL',
+            'INGENIERIA EN AGRONOMIA',
+            'INGENIERIA INDUSTRIAL MIXTA',
+            'INGENIERIA EN GESTION EMPRESARIAL MIXTA'
         ],
         menu: false,
         modal: false,
